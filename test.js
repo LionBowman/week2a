@@ -32,13 +32,16 @@ const fs = require('fs');
 nodesTxtFile = fs.readFileSync('nodes.txt');
 nodes = JSON.parse(nodesTxtFile);
 console.log("nodes config file has " + nodes);
+
+var subsockets = [];
+
 //for each key value in nodes
 Object.entries(nodes).forEach(([hostname,ip]) => {
 
  //print the hostname IP
  console.log("hostname = " + hostname + " ip = " + ip);
 //create a number of subscribers to connect to publishers
- var subsockets = [];
+
  if(myhostname != hostname ){
  tempsoc = zmq.socket("sub");
  tempsoc.connect("tcp://" + ip + ":3000");
