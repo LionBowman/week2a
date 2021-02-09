@@ -2,15 +2,18 @@
 const express = require('express');
 const app = express();
 const port = 1000;
+//Get the hostname of the node
+var os = require("os");
+var myhostname = os.hostname();
+const fs = require('fs');
+nodesTxtFile = fs.readFileSync('nodes.txt');
+nodes = JSON.parse(nodesTxtFile);
 //setup zeromq
 var zmq = require("zeromq"),
  sock = zmq.socket("pub");
 //bind a publisher to port 3000 all IP addresses
-sock.bindSync("tcp://*:3000");
-console.log("ZeroMQ h Publisher bound to port 3000");
-//Get the hostname of the node
-var os = require("os");
-var myhostname = os.hostname();
+sock.bindSync("tcp://" + nodes[myhostname] + ":3000");
+console.log("ZeroMQ h Publisher bound to " + nodes[myhostname] + "port 3000");
 //print the hostname
 console.log(myhostname);
 //route for get page /
@@ -19,7 +22,7 @@ app.get('/', (req, res) => {
  res.send('Hello this is node ' + myhostname );
 })
 //bind node to the port
-app.listen(port, () => {
+app.listen(port, nodes[myhostname] , () => {
  console.log(`Express listening at port ` + port);
 })
 //based on the interval publish a status message
@@ -27,11 +30,6 @@ setInterval(function() {
  console.log("sending alive");
  sock.send(["status", myhostname + "=alive"]);
 }, 500);
-//read the nodes.txt file
-const fs = require('fs');
-nodesTxtFile = fs.readFileSync('nodes.txt');
-nodes = JSON.parse(nodesTxtFile);
-console.log("nodes config file has " + nodes);
 //for each key value in nodes
 Object.entries(nodes).forEach(([hostname,ip]) => {
 
